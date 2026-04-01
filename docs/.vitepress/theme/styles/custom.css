@@ -1,0 +1,65 @@
+/* Blue color scheme — Light */
+:root {
+  --vp-c-brand-1: #3b82f6;
+  --vp-c-brand-2: #2563eb;
+  --vp-c-brand-3: #1d4ed8;
+  --vp-c-brand-soft: rgba(59, 130, 246, 0.14);
+
+  --vp-custom-block-tip-border: #3b82f6;
+  --vp-custom-block-tip-text: #1e40af;
+  --vp-custom-block-tip-bg: rgba(59, 130, 246, 0.08);
+
+  --vp-custom-block-warning-border: #f59e0b;
+  --vp-custom-block-warning-text: #92400e;
+  --vp-custom-block-warning-bg: rgba(245, 158, 11, 0.08);
+
+  --vp-custom-block-danger-border: #ef4444;
+  --vp-custom-block-danger-text: #991b1b;
+  --vp-custom-block-danger-bg: rgba(239, 68, 68, 0.08);
+
+  --vp-badge-tip-border: #3b82f6;
+  --vp-badge-tip-text: #3b82f6;
+
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-text: #fff;
+  --vp-button-brand-bg: #3b82f6;
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-hover-text: #fff;
+  --vp-button-brand-hover-bg: #2563eb;
+  --vp-button-brand-active-border: transparent;
+  --vp-button-brand-active-text: #fff;
+  --vp-button-brand-active-bg: #1d4ed8;
+}
+
+/* Blue color scheme — Dark */
+.dark {
+  --vp-c-brand-1: #38bdf8;
+  --vp-c-brand-2: #0ea5e9;
+  --vp-c-brand-3: #0284c7;
+  --vp-c-brand-soft: rgba(56, 189, 248, 0.14);
+
+  --vp-custom-block-tip-border: #38bdf8;
+  --vp-custom-block-tip-text: #7dd3fc;
+  --vp-custom-block-tip-bg: rgba(56, 189, 248, 0.08);
+
+  --vp-custom-block-warning-border: #fbbf24;
+  --vp-custom-block-warning-text: #fde68a;
+  --vp-custom-block-warning-bg: rgba(251, 191, 36, 0.08);
+
+  --vp-custom-block-danger-border: #f87171;
+  --vp-custom-block-danger-text: #fca5a5;
+  --vp-custom-block-danger-bg: rgba(248, 113, 113, 0.08);
+
+  --vp-badge-tip-border: #38bdf8;
+  --vp-badge-tip-text: #38bdf8;
+
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-text: #0f172a;
+  --vp-button-brand-bg: #38bdf8;
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-hover-text: #0f172a;
+  --vp-button-brand-hover-bg: #0ea5e9;
+  --vp-button-brand-active-border: transparent;
+  --vp-button-brand-active-text: #0f172a;
+  --vp-button-brand-active-bg: #0284c7;
+}
