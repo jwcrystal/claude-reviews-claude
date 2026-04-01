@@ -1,0 +1,16 @@
+{
+  "name": "claude-reviews-claude-docs",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "docs:prepare": "bash scripts/prepare-docs.sh",
+    "docs:dev": "npm run docs:prepare && npx vitepress dev docs",
+    "docs:build": "npm run docs:prepare && npx vitepress build docs",
+    "docs:preview": "npx vitepress preview docs"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.3",
+    "vitepress-plugin-mermaid": "^2.0.17",
+    "mermaid": "^11.4.0"
+  }
+}
