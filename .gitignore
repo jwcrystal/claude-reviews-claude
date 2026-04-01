@@ -1,0 +1,10 @@
+.superpowers/
+
+# VitePress generated content
+docs/architecture/
+docs/en/architecture/
+docs/zh-CN/architecture/
+docs/public/assets/
+node_modules/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
