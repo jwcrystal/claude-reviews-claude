@@ -45,7 +45,7 @@ function fixLinks(content, dir) {
   // Step 5: README links → homepage
   content = content.replace(
     /\[([^\]]*)\]\(\.\.\/README(_EN)?\.md\)/g,
-    (m, text, isEn) => isEn ? `[$1](/en/)` : `[$1](/)`
+    (m, text, isEn) => isEn ? `[${text}](/en/)` : `[${text}](/)`
   );
 
   // Step 6: Same-directory chapter links: ../xx.md or ./xx.md → ./xx (cleanUrls)
