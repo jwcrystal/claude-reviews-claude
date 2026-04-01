@@ -139,11 +139,11 @@ const sidebar = {
   ],
 };
 
-export default withMermaid(
-  defineConfig({
+export default withMermaid(defineConfig({
     base: '/claude-reviews-claude/',
     cleanUrls: true,
     lastUpdated: true,
+    ignoreDeadLinks: true,
     title: 'Claude Code 架構深度解析',
     description: '17-chapter architecture analysis of Claude Code',
 
