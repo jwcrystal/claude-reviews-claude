@@ -64,86 +64,73 @@ This project's analysis is based on the TypeScript source of Claude Code v2.1.88
 
 ## 🧠 Architecture Overview
 
-Claude Code is a **1,902-file, 477K-line TypeScript** codebase running on **Bun**, with a terminal UI built on **React + Ink**. Here's the high-level architecture:
+Claude Code is a **1,902-file, 477K-line TypeScript** codebase running on **Bun**, with a terminal UI built on **React + Ink**.
 
-```mermaid
-graph TB
-    subgraph Entry["🚀 Entrypoint"]
-        CLI["main.tsx<br/>Commander.js CLI Parser"]
-        BOOT["Bootstrap<br/>Prefetch + Keychain + GrowthBook"]
-    end
+### Six Pillars
 
-    subgraph Core["⚙️ Core Engine"]
-        QE["QueryEngine<br/>Session lifecycle, tool loop,<br/>streaming, usage tracking"]
-        Q["query()<br/>LLM API call + tool execution loop"]
-        PUI["processUserInput()<br/>Slash commands, attachments,<br/>input normalization"]
-    end
-
-    subgraph Tools["🔧 Tool System (42 modules)"]
-        direction LR
-        FS["File Tools<br/>Read / Write / Edit / Glob / Grep"]
-        EXEC["Execution<br/>Bash / PowerShell / REPL"]
-        AGENT["Agent Tools<br/>AgentTool / SendMessage /<br/>TeamCreate / TeamDelete"]
-        EXT["External<br/>MCP / LSP / WebFetch / WebSearch"]
-        PLAN["Workflow<br/>EnterPlanMode / Worktree /<br/>TaskCreate / SkillTool"]
-    end
-
-    subgraph Permission["🔐 Permission System"]
-        PP["Permission Pipeline<br/>Config → Rules → Sandbox → User Prompt"]
-        SB["Sandbox Manager<br/>macOS: seatbelt<br/>Linux: seccomp+namespace"]
-    end
-
-    subgraph Coord["🤖 Multi-Agent Coordinator"]
-        CM["coordinatorMode.ts<br/>Worker dispatch + message routing"]
-        WORKERS["Worker Agents<br/>Parallel task execution"]
-    end
-
-    subgraph Services["📡 Services"]
-        API["Anthropic API Client<br/>Streaming + retry + fallback"]
-        MCP["MCP Server Manager"]
-        OAUTH["OAuth 2.0"]
-        GB["GrowthBook Feature Flags"]
-    end
-
-    subgraph UI["🖥️ Terminal UI"]
-        INK["React + Ink<br/>140+ components"]
-        BRIDGE["Bridge System<br/>IDE ↔ CLI communication"]
-    end
-
-    subgraph State["💾 State & Context"]
-        CTX["Context Assembly<br/>System prompt + user context +<br/>memory + skills + plugins"]
-        COST["CostTracker<br/>Per-model token accounting"]
-        SESS["Session Storage<br/>Transcript persistence"]
-    end
-
-    CLI --> BOOT
-    BOOT --> QE
-    QE --> PUI
-    PUI --> Q
-    Q --> Tools
-    Tools --> PP
-    PP --> SB
-    QE --> Coord
-    CM --> WORKERS
-    QE --> State
-    Q --> API
-    API --> MCP
-    CLI --> UI
-    UI --> BRIDGE
+```
+                        ┌─────────────────────────┐
+                        │     System Prompt        │
+                        │  (Identity + Rules +     │
+                        │   42+ Tool Descriptions) │
+                        └────────────┬────────────┘
+                                     │
+                  ┌──────────────────┼──────────────────┐
+                  │                  │                  │
+         ┌───────▼────────┐ ┌──────▼───────┐ ┌───────▼────────┐
+         │  🔧 Tool System │ │  ⚙️ Query    │ │  📦 Context    │
+         │  (42+ tools,    │ │  Loop        │ │  Management    │
+         │   30+ methods)  │ │  (12-step    │ │  (4-layer      │
+         │                 │ │   state      │ │   compression) │
+         │                 │ │   machine)   │ │                │
+         └───────┬────────┘ └──────┬───────┘ └───────┬────────┘
+                  │                  │                  │
+                  └──────────────────┼──────────────────┘
+                                     │
+                  ┌──────────────────┼──────────────────┐
+                  │                  │                  │
+         ┌───────▼────────┐ ┌──────▼───────┐ ┌───────▼────────┐
+         │  🔐 Permission  │ │  🤖 Multi-   │ │  🧩 Skill &    │
+         │  & Security     │ │  Agent       │ │  Plugin        │
+         │  (7-layer       │ │  Swarm       │ │  (6 sources,   │
+         │   defense)      │ │  (3 backends,│ │   MCP proto)   │
+         │                 │ │   7 tasks)   │ │                │
+         └────────────────┘ └──────────────┘ └────────────────┘
 ```
 
-### Key Architectural Decisions
+### The Core Loop: A "Dumb Loop" That Drives Everything
 
-| Decision | Choice | Why It Matters |
-|----------|--------|----------------|
-| **Runtime** | Bun (not Node.js) | ~3x faster startup, native binary bundling, `bun:bundle` feature flags for dead code elimination |
-| **UI Framework** | React + Ink | Component-based terminal UI, state management via hooks, reusable across IDE bridges |
-| **Search Strategy** | Agentic search (grep/glob) over RAG/vector DB | Better precision, always fresh, no index maintenance, security (no embedding leaks) |
-| **Core Loop** | Single-threaded `query()` generator | Simplicity — intelligence lives in the LLM, the scaffold is a dumb loop. AsyncGenerator enables streaming |
-| **Multi-Agent** | Coordinator pattern with `AgentTool` + `SendMessageTool` | Fan-out parallel workers for research, serialize for writes. Workers can't see coordinator's conversation |
-| **Schema** | Zod v4 | Runtime validation + compile-time type inference in one declaration |
-| **Permissions** | Multi-stage pipeline + OS sandbox | Defense in depth: app-level rules → sandbox isolation. Sandbox enables auto-approve for low-risk ops |
-| **Feature Gating** | `bun:bundle` compile-time flags | `COORDINATOR_MODE`, `VOICE_MODE`, `PROACTIVE`, `KAIROS` etc. — dead code stripped at build time |
+```
+    User Input
+      │
+      ▼
+    QueryEngine.query()  ◄──────────────────────┐
+      │                                          │
+      ▼                                          │
+    Claude API (streaming)                       │
+      │                                          │
+      ├── stop_reason = end_turn? ──► Response    │
+      │                                          │
+      └── stop_reason = tool_use?                │
+            │                                    │
+            ▼                                    │
+          🔐 Permission → 🔧 Execute → Inject ──┘
+```
+
+> **Design philosophy:** Intelligence lives in the LLM; the scaffold is just a loop. 42+ tools, 7-layer security, 4-layer compaction, multi-agent coordination — all of it is a **production-grade harness** wrapped around this loop.
+
+### Six Subsystems at a Glance
+
+| Subsystem | Core Capability | Key Numbers | Details |
+|-----------|----------------|------------|---------|
+| ⚙️ **Query Engine** | while(true) tool loop + streaming + error recovery | 12-step state machine | [EP01](architecture/01-query-engine.md) |
+| 🔧 **Tool System** | File/Bash/Search/Agent/MCP, Schema-driven registration | 42+ tools, 30+ method contract | [EP02](architecture/02-tool-system.md) |
+| 🔐 **Permission & Security** | Rule matching → AST analysis → YOLO classifier → OS sandbox | 7-layer defense-in-depth | [EP07](architecture/07-permission-pipeline.md) |
+| 📦 **Context Management** | Micro → snip → auto → reactive compression | 4-layer cascade, 200K context | [EP11](architecture/11-compact-system.md) |
+| 🤖 **Multi-Agent** | iTerm2/tmux/in-process backends, divide-and-conquer | 7 task types | [EP08](architecture/08-agent-swarms.md) |
+| 🖥️ **Terminal UI** | Forked Ink + React 19, Vim mode, IDE bridge | 140+ components | [EP14](architecture/14-ui-state-management.md) |
+
+> 📐 Full architecture diagrams and reading paths → [Architecture Overview](architecture/00-overview.md)
 
 ---
 

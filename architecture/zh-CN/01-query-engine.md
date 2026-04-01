@@ -4,7 +4,7 @@
 
 > **源文件**：`QueryEngine.ts` (1,296 行), `query.ts` (1,730 行), `query/` 目录
 
-## TL;DR
+## 太长不看，一句话总结
 
 QueryEngine 是 Claude Code 整个生命周期的核心编排器。它负责拥有会话状态、管理 LLM 查询循环、处理流式传输、跟踪成本，并协调从用户输入处理到工具执行的一切工作。`query()` 中的核心循环是一个刻意设计的简单 `while(true)` 异步生成器（AsyncGenerator） —— 所有的智能都存在于 LLM 中，脚手架（Scaffold）被有意设计为“愚钝”的。
 

@@ -4,7 +4,7 @@
 
 > **源文件**：`coordinator/coordinatorMode.ts` (370 行), `tools/AgentTool/` (14 个文件), `tools/SendMessageTool/`, `tools/TeamCreateTool/`, `tools/TeamDeleteTool/`, `tools/TaskStopTool/`
 
-## TL;DR
+## 太长不看，一句话总结
 
 Claude Code 不仅仅是一个单智能体（Single-agent）的命令行工具。它拥有一个隐藏的**协调者模式 (Coordinator mode)**，可以将其转化为一个多智能体编排器 —— 负责分发并行工作智能体、在它们之间路由消息并汇总结果。这一功能被隐藏在编译时标志之后，在官方文档中并无提及。
 

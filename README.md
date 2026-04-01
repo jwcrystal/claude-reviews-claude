@@ -66,86 +66,70 @@
 
 ## 🧠 架构概览
 
-Claude Code 是一个包含 **1,902 个文件、47.7 万行 TypeScript** 的代码库，运行在 **Bun** 环境上，并使用 **React + Ink** 构建终端 UI。以下是其高层架构图：
+Claude Code 是一个包含 **1,902 个文件、47.7 万行 TypeScript** 的代码库，运行在 **Bun** 环境上，并使用 **React + Ink** 构建终端 UI。
 
-```mermaid
-graph TB
-    subgraph Entry["🚀 入口点"]
-        CLI["main.tsx<br/>Commander.js 命令行解析"]
-        BOOT["引导程序 (Bootstrap)<br/>预取 + 密钥链 + GrowthBook"]
-    end
+### 六大支柱
 
-    subgraph Core["⚙️ 核心引擎"]
-        QE["查询引擎 (QueryEngine)<br/>会话生命周期、工具循环、<br/>流处理、用量跟踪"]
-        Q["query()<br/>LLM API 调用 + 工具执行循环"]
-        PUI["用户输入处理 (processUserInput)<br/>斜杠命令、附件、<br/>输入规范化"]
-    end
-
-    subgraph Tools["🔧 工具系统 (42 个模块)"]
-        direction LR
-        FS["文件工具<br/>读/写/编辑/通配符/搜索"]
-        EXEC["执行工具<br/>Bash / PowerShell / REPL"]
-        AGENT["智能体工具<br/>AgentTool / 发送消息 /<br/>团队管理"]
-        EXT["外部集成<br/>MCP / LSP / 网页抓取 / 搜索"]
-        PLAN["工作流<br/>计划模式 / 工作树 /<br/>任务创建 / 技能工具"]
-    end
-
-    subgraph Permission["🔐 权限系统"]
-        PP["权限流水线<br/>配置 → 规则 → 沙箱 → 用户确认"]
-        SB["沙箱管理器 (Sandbox)<br/>macOS: seatbelt<br/>Linux: seccomp+namespace"]
-    end
-
-    subgraph Coord["🤖 多智能体协调器"]
-        CM["coordinatorMode.ts<br/>工作线程调度 + 消息路由"]
-        WORKERS["工作智能体 (Workers)<br/>并行任务执行"]
-    end
-
-    subgraph Services["📡 服务层"]
-        API["Anthropic API 客户端<br/>流式传输 + 重试 + 备用方案"]
-        MCP["MCP 服务管理器"]
-        OAUTH["OAuth 2.0"]
-        GB["GrowthBook 功能开关"]
-    end
-
-    subgraph UI["🖥️ 终端 UI"]
-        INK["React + Ink<br/>140+ 个组件"]
-        BRIDGE["IDE 桥接系统<br/>IDE ↔ CLI 双向通信"]
-    end
-
-    subgraph State["💾 状态与上下文"]
-        CTX["上下文组装 (Context Assembly)<br/>系统提示词 + 用户上下文 +<br/>记忆 + 技能 + 插件"]
-        COST["成本跟踪 (CostTracker)<br/>各模型 Token 计费"]
-        SESS["会话存储<br/>转录记录持久化"]
-    end
-
-    CLI --> BOOT
-    BOOT --> QE
-    QE --> PUI
-    PUI --> Q
-    Q --> Tools
-    Tools --> PP
-    PP --> SB
-    QE --> Coord
-    CM --> WORKERS
-    QE --> State
-    Q --> API
-    API --> MCP
-    CLI --> UI
-    UI --> BRIDGE
+```
+                        ┌─────────────────────────┐
+                        │     System Prompt        │
+                        │  (身份 + 规则 +           │
+                        │   42+ 工具描述)           │
+                        └────────────┬────────────┘
+                                     │
+                  ┌──────────────────┼──────────────────┐
+                  │                  │                  │
+         ┌───────▼────────┐ ┌──────▼───────┐ ┌───────▼────────┐
+         │  🔧 工具系统    │ │  ⚙️ 查询循环  │ │  📦 上下文     │
+         │  (42+ 工具，    │ │  (12 步      │ │  管理          │
+         │   每个 30+ 方法)│ │   状态机)    │ │  (4 层压缩)    │
+         └───────┬────────┘ └──────┬───────┘ └───────┬────────┘
+                  │                  │                  │
+                  └──────────────────┼──────────────────┘
+                                     │
+                  ┌──────────────────┼──────────────────┐
+                  │                  │                  │
+         ┌───────▼────────┐ ┌──────▼───────┐ ┌───────▼────────┐
+         │  🔐 权限与安全  │ │  🤖 多 Agent │ │  🧩 Skill &    │
+         │  (7 层纵深防御) │ │  集群        │ │  Plugin        │
+         │                │ │  (3 后端，   │ │  (6 源，       │
+         │                │ │   7 种任务)  │ │   MCP 协议)    │
+         └────────────────┘ └──────────────┘ └────────────────┘
 ```
 
-### 关键架构决策
+### 核心循环：一个"笨循环"驱动一切
 
-| 决策点 | 选择 | 为什么重要 |
-|----------|--------|----------------|
-| **运行时 (Runtime)** | Bun (而非 Node.js) | 启动速度提升约 3 倍，支持原生二进制打包，利用 `bun:bundle` 实现死代码消除 |
-| **UI 框架** | React + Ink | 基于组件的终端 UI，通过 Hooks 管理状态，可跨 IDE 桥接器复用 |
-| **搜索策略** | 智能体搜索 (grep/glob) | 比 RAG/向量数据库更精确，数据永远保持最新，无需维护索引，更安全 |
-| **核心循环** | 单线程 `query()` 生成器 | 极致简约 —— 智能存在于 LLM 中，脚手架只是个简单的循环。AsyncGenerator 支持流式返回 |
-| **多智能体** | Coordinator 协调器模式 | 扇出并行工作线程进行调研，串行化写入。Worker 无法读取协调者的私密历史 |
-| **模式校验** | Zod v4 | 在一次声明中同时实现运行时验证和编译时类型推导 |
-| **权限管理** | 多级流水线 + OS 沙箱 | 纵深防御：应用层规则 → 内核层沙箱隔离。沙箱允许低风险操作自动批准 |
-| **功能开关** | `bun:bundle` 编译标志 | 协调模式、语音模式、主动模式等代码在构建时即被剔除，减小二进制体积 |
+```
+    用户输入
+      │
+      ▼
+    QueryEngine.query()  ◄──────────────────────┐
+      │                                          │
+      ▼                                          │
+    Claude API（流式调用）                        │
+      │                                          │
+      ├── stop_reason = end_turn? ──► 输出结果    │
+      │                                          │
+      └── stop_reason = tool_use?                │
+            │                                    │
+            ▼                                    │
+          🔐 权限检查 → 🔧 执行工具 → 注入结果 ──┘
+```
+
+> **设计哲学：** 智能存在于 LLM 中，脚手架只是个循环。42+ 工具、7 层安全、4 层压缩、多 Agent 协调——全部是围绕这个循环的**生产级 Harness**。
+
+### 六大子系统速览
+
+| 子系统 | 核心能力 | 关键数字 | 详情 |
+|--------|---------|---------|------|
+| ⚙️ **查询引擎** | while(true) 工具循环 + 流式处理 + 错误恢复 | 12 步状态机 | [EP01](architecture/zh-CN/01-query-engine.md) |
+| 🔧 **工具系统** | 文件/Bash/搜索/Agent/MCP，Schema 驱动注册 | 42+ 工具，30+ 方法契约 | [EP02](architecture/zh-CN/02-tool-system.md) |
+| 🔐 **权限安全** | 规则匹配 → AST 分析 → YOLO 分类器 → OS 沙箱 | 7 层纵深防御 | [EP07](architecture/zh-CN/07-permission-pipeline.md) |
+| 📦 **上下文管理** | 微压缩 → 截断 → AI 摘要 → 紧急压缩 | 4 层级联，200K 上下文 | [EP11](architecture/zh-CN/11-compact-system.md) |
+| 🤖 **多 Agent** | iTerm2/tmux/进程内后端，分治并行 | 7 种任务类型 | [EP08](architecture/zh-CN/08-agent-swarms.md) |
+| 🖥️ **终端 UI** | Fork Ink + React 19，Vim 模式，IDE 桥接 | 140+ 组件 | [EP14](architecture/zh-CN/14-ui-state-management.md) |
+
+> 📐 完整架构图和阅读路径见 → [架构总纲 (Overview)](architecture/zh-CN/00-overview.md)
 
 ---
 

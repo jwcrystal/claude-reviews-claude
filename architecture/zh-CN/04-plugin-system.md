@@ -4,7 +4,7 @@
 
 > **源文件**：`utils/plugins/` (44 个文件, 18,856 行), `components/ManagePlugins.tsx` (2,089 行)
 
-## TL;DR
+## 太长不看，一句话总结
 
 Claude Code 在底层隐藏了一个完整的插件生态系统 —— 包括插件市场、依赖解析、自动更新、黑名单、ZIP 缓存和热重载。它比官方文档所暗示的要复杂得多。单单是插件加载器 (`pluginLoader.ts`) 就有 113K 字节 —— 比大多数完整的 npm 包还要大。
 
