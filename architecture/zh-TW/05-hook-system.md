@@ -136,10 +136,10 @@ graph TB
 
 ---
 
-## 6. 後臺異步鉤子與喚醒
+## 6. background異步鉤子與喚醒
 
-鉤子不僅可以同步攔截，還可以配置為**後臺異步執行**：
-當鉤子返回 `{ "async": true, "asyncRewake": true }` 時，它將被掛起在後臺運行。即使模型當前正在處理其他任務，當異步鉤子完成時，它可以通過產生 `task-notification` 消息重新喚醒（Re-wake）模型，把數據強行注入到對話流中。
+鉤子不僅可以同步攔截，還可以配置為**background異步執行**：
+當鉤子返回 `{ "async": true, "asyncRewake": true }` 時，它將被掛起在background運行。即使模型當前正在處理其他任務，當異步鉤子完成時，它可以通過產生 `task-notification` 消息重新喚醒（Re-wake）模型，把數據強行注入到對話流中。
 
 ---
 
@@ -179,5 +179,5 @@ graph TB
 | **觸發方式** | Shell 命令行、Webhook HTTP、子智能體代理、JS 回調（SDK） |
 | **關鍵攔截點** | `PreToolUse` —— 能審核、拒絕或篡改任何工具調用 |
 | **安全機制** | 強制要求工作區信任 (Workspace Trust) |
-| **異步流** | 支持後臺執行，以及回調型模型喚醒 |
+| **異步流** | 支持background執行，以及回調型模型喚醒 |
 | **衝突聚合** | 按照“最嚴苛限制優先（Deny > Allow）”和覆蓋原則合併結果 |

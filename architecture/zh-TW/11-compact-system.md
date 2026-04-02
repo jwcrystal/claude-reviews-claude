@@ -109,7 +109,7 @@ pendingCacheEdits = cacheEdits  // 由 API 層消費
 
 ### 工作原理
 
-不再讓 LLM 摘要對話，而是使用**會話記憶**（由後臺 agent 持續維護的摘要）作為壓縮摘要。這消除了壓縮 API 調用的成本和延遲。
+不再讓 LLM 摘要對話，而是使用**會話記憶**（由background agent 持續維護的摘要）作為壓縮摘要。這消除了壓縮 API 調用的成本和延遲。
 
 ```
 之前: [msg1, msg2, ..., msg_summarized, ..., msg_recent1, msg_recent2]
@@ -137,7 +137,7 @@ const DEFAULT_SM_COMPACT_CONFIG = {
 
 ---
 
-## 第三層：完整壓縮 —— 核選項
+## 第三層：完整壓縮 —— 最終手段
 
 `compactConversation()`（`compact.ts`，387-763 行）執行完整的 LLM 驅動對話摘要。
 

@@ -216,7 +216,7 @@ export const DENIAL_LIMITS = {
 
 ## 6. 無頭代理權限
 
-後臺/異步代理無法顯示權限提示。流水線的處理方式：
+background/異步代理無法顯示權限提示。流水線的處理方式：
 
 1. 運行 `PermissionRequest` 鉤子 —— 給鉤子機會做出決策
 2. 如果沒有鉤子決策 → 自動拒絕

@@ -127,7 +127,7 @@ graph TB
 ### 官方市場 
 市場是一個服務於插件目錄的 GCS (Google Cloud Storage) 存儲桶。它包含：
 - **啟動檢查**：在啟動時檢查插件更新。
-- **自動更新**：後臺的自動更新機制。
+- **自動更新**：background的自動更新機制。
 - **黑名單**：可遠程禁用被攻破或違規的插件。
 - **安裝統計**：用於評估市場受歡迎程度的監控。
 
@@ -233,7 +233,7 @@ MCP 工具命名規則：`mcp__{serverName}__{toolName}`，自動注入 `assembl
 
 ---
 
-## 11. 後臺安裝管理器
+## 11. background安裝管理器
 
 **源碼座標**: `src/utils/plugins/pluginInstallationManager.ts`
 

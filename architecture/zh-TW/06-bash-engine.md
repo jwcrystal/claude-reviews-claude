@@ -26,7 +26,7 @@ graph TB
 
     subgraph Shell["⚡ Shell 執行層"]
         EXEC["Shell.exec()<br/>查找 Shell、構建命令、<br/>生成子進程"]
-        WRAP["ShellCommand (wrapSpawn)<br/>超時、中止、後臺化"]
+        WRAP["ShellCommand (wrapSpawn)<br/>超時、中止、背景化"]
         TASK["TaskOutput<br/>文件直寫 I/O、輪詢進度"]
     end
 
@@ -93,20 +93,20 @@ z.strictObject({
 ```typescript
 // 源碼位置: src/tools/BashTool/BashTool.tsx:200-280
 async function* runShellCommand({...}): AsyncGenerator<進度, 結果, void> {
-  // 1. 判斷是否允許自動後臺化
+  // 1. 判斷是否允許自動背景化
   // 2. 通過 Shell.exec() 執行
   // 3. 等待初始閾值（2秒）後才顯示進度
   // 4. 由共享輪詢器驅動的進度循環
   while (true) {
     const result = await Promise.race([結果Promise, 進度信號])
     if (result !== null) return result
-    if (已後臺化) return 後臺化結果
+    if (已背景化) return 背景化結果
     yield { type: 'progress', output, elapsedTimeSeconds, ... }
   }
 }
 ```
 
-### 三條後臺化路徑
+### 三條背景化路徑
 
 | 路徑 | 觸發條件 | 決策者 |
 |------|---------|--------|
@@ -115,7 +115,7 @@ async function* runShellCommand({...}): AsyncGenerator<進度, 結果, void> {
 | **助手模式** | 主代理中阻塞 > 15 秒 | `setTimeout()` + 15秒預算 |
 | **用戶** | 執行期間按 Ctrl+B | `registerForeground()` → `background()` |
 
-`sleep` 命令被特別禁止自動後臺化 —— 除非顯式請求，否則在前臺運行。
+`sleep` 命令被特別禁止自動背景化 —— 除非顯式請求，否則在 foreground 運行。
 
 ---
 
@@ -159,15 +159,15 @@ Claude Code 對支持哪些 Shell 有明確立場：
 stateDiagram-v2
     [*] --> Running: spawn()
     Running --> Completed: exit 事件
-    Running --> Killed: abort / 超時(無自動後臺)
-    Running --> Backgrounded: Ctrl+B / 超時(自動後臺) / 15s預算
+    Running --> Killed: abort / 超時(無自動背景)
+    Running --> Backgrounded: Ctrl+B / 超時(自動背景) / 15s預算
     Backgrounded --> Completed: exit 事件
     Backgrounded --> Killed: 大小看門狗 (> 768MB 事故!)
 ```
 
 ### 大小看門狗
 
-後臺任務直接寫入文件描述符，**沒有 JS 參與**。一個卡住的追加循環曾經填滿了 768GB 的磁盤。修復方案：每 5 秒輪詢文件大小，超過限制時 `SIGKILL` 終止整個進程樹。
+背景任務直接寫入文件描述符，**沒有 JS 參與**。一個卡住的追加循環曾經填滿了 768GB 的磁盤。修復方案：每 5 秒輪詢文件大小，超過限制時 `SIGKILL` 終止整個進程樹。
 
 ### 為什麼用 `exit` 而非 `close`
 
@@ -304,7 +304,7 @@ sequenceDiagram
 | `readOnlyValidation.ts` | ~1,700 | 只讀約束檢查 |
 | `pathValidation.ts` | ~1,100 | 路徑穿越和逃逸檢測 |
 | `Shell.ts` | 475 | Shell 發現、進程生成、CWD 跟蹤 |
-| `ShellCommand.ts` | 466 | 進程生命週期、後臺化、超時 |
+| `ShellCommand.ts` | 466 | 進程生命週期、背景化、超時 |
 | `sandbox-adapter.ts` | 986 | 設置轉換、OS 沙箱編排 |
 | `bashProvider.ts` | 256 | 命令組裝、快照、eval 包裝 |
 | `bash/` 解析器 | ~7,000+ | AST 解析、heredoc、引號、管道處理 |

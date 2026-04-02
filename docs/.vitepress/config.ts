@@ -30,7 +30,7 @@ const sidebar = {
         { text: 'Agent Swarms', link: '/architecture/08-agent-swarms' },
         { text: '會話持久化', link: '/architecture/09-session-persistence' },
         { text: '上下文組裝', link: '/architecture/10-context-assembly' },
-        { text: '精簡系統', link: '/architecture/11-compact-system' },
+        { text: '壓縮系統', link: '/architecture/11-compact-system' },
       ],
     },
     {

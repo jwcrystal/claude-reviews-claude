@@ -2,7 +2,7 @@
 
 > **源文件**：`cli.tsx`（303 行）、`init.ts`（341 行）、`setup.ts`（478 行）、`main.tsx`（4,500+ 行）、`bootstrap/state.ts`（1,759 行）、`startupProfiler.ts`（195 行）、`apiPreconnect.ts`（72 行）
 >
-> **一句話總結**：Claude Code 的啟動是一場精心編排的賽跑 —— 快速路徑級聯、動態導入、並行預取和 API 預連接，一切都是為了讓用戶儘快開始輸入，同時將 400KB+ 的 OpenTelemetry、插件和分析推遲到後臺。
+> **一句話總結**：Claude Code 的啟動是一場精心編排的賽跑 —— 快速路徑級聯、動態導入、並行預取和 API 預連接，一切都是為了讓用戶儘快開始輸入，同時將 400KB+ 的 OpenTelemetry、插件和分析推遲到background。
 
 ## 架構概覽
 
@@ -31,7 +31,7 @@ graph LR
 
     subgraph "階段 3：環境設置 (setup.ts)"
         CONFIGS --> HOOKS["captureHooksConfigSnapshot()"]
-        HOOKS --> BG["後臺任務"]
+        HOOKS --> BG["背景任務"]
         BG --> SM["initSessionMemory()"]
         BG --> CMDS["void getCommands() // 預取"]
         BG --> PLUGINS["loadPluginHooks() // 預取"]
@@ -70,7 +70,7 @@ if (args.length === 1 && (args[0] === '--version' || args[0] === '-v')) {
 | `--daemon-worker` | 監督器生成 | 特定 worker 模塊 | 配置、分析、sink |
 | `remote-control` | `rc`、`remote`、`bridge` | Bridge + 認證 + 策略 | 完整 CLI、UI |
 | `daemon` | `daemon` 子命令 | 配置 + sink + daemon | 完整 CLI、UI |
-| `ps/logs/attach/kill` | 後臺會話管理 | 配置 + bg 模塊 | 完整 CLI、UI |
+| `ps/logs/attach/kill` | background會話管理 | 配置 + bg 模塊 | 完整 CLI、UI |
 | `new/list/reply` | 模板 | 模板處理器 | 完整 CLI |
 | *(默認)* | 正常啟動 | `main.tsx`（所有內容） | 無 |
 
@@ -171,12 +171,12 @@ const { initializeTelemetry } = await import('../utils/telemetry/instrumentation
 3. **終端備份恢復** — 檢測被中斷的 iTerm2/Terminal.app 設置
 4. **CWD + 鉤子** — `setCwd()` 必須先運行，然後 `captureHooksConfigSnapshot()`
 5. **Worktree 創建** — 如果有 `--worktree`，創建 git worktree 並切換到其中
-6. **後臺任務** — 發射即忘預取
+6. **背景任務** — 發射即忘預取
 
-### 後臺預取策略
+### 背景預取策略
 
 ```typescript
-// 後臺任務 — 只有關鍵註冊在首次查詢前完成
+// 背景任務 — 只有關鍵註冊在首次查詢前完成
 initSessionMemory()     // 同步 — 註冊鉤子，門控檢查延遲
 void getCommands()      // 預取命令（與用戶輸入並行）
 void loadPluginHooks()  // 預加載插件鉤子
@@ -317,7 +317,7 @@ main_after_run                     →  ~1000ms（REPL 就緒）
 |------|------|------|
 | `main.tsx` | 4,500+ | 完整 CLI：commander 設置、動作處理器、REPL 編排 |
 | `bootstrap/state.ts` | 1,759 | 全局狀態單例：80+ 字段、DAG 葉節點、粘性鎖存 |
-| `setup.ts` | 478 | 信任後環境：worktree、鉤子、後臺預取 |
+| `setup.ts` | 478 | 信任後環境：worktree、鉤子、背景預取 |
 | `init.ts` | 341 | 與信任無關的初始化：配置、TLS、代理、預連接 |
 | `cli.tsx` | 303 | 入口點：快速路徑級聯、動態導入分發 |
 | `startupProfiler.ts` | 195 | 啟動性能：檢查點、階段、內存快照 |

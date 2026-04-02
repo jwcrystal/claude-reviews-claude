@@ -201,7 +201,7 @@ export function addToTotalSessionCost(cost, usage, model) {
 ```
 API 調用 → 出錯?
   ├── 429 (限流)      → 指數退避重試（基數 500ms，上限 32s）
-  ├── 529 (過載)      → 前臺查詢重試；後臺查詢立即放棄
+  ├── 529 (過載)      → 前景查詢重試；背景查詢立即放棄
   ├── 401 (認證失敗)  → 刷新 OAuth Token，清除 API 密鑰緩存，重試
   ├── 403 (Token 撤銷) → 強制 Token 刷新，重試
   ├── ECONNRESET/EPIPE → 禁用長連接，重新建連
@@ -209,11 +209,11 @@ API 調用 → 出錯?
   └── 其他 5xx         → 標準指數退避重試
 ```
 
-### 前臺 vs 後臺：查詢的優先級分層
+### foreground vs background：查詢的優先級分層
 
 // 源碼位置: src/services/api/withRetry.ts:57-89
 
-一個關鍵優化：**529 錯誤僅對前臺查詢重試**。後臺任務（摘要生成、標題提取、分類器）在 529 時立即放棄，避免在容量級聯故障中製造放大效應。
+一個關鍵優化：**529 錯誤僅對前景查詢重試**。背景任務（摘要生成、標題提取、分類器）在 529 時立即放棄，避免在容量級聯故障中製造放大效應。
 
 ### 模型降級觸發
 
@@ -348,7 +348,7 @@ API 對 thinking block 強制執行三條嚴格規則：
 | `--dump-system-prompt` | 內部專用 | 僅加載 config + model + prompts |
 | `remote-control`/`bridge` | 子命令 | Bridge 全棧（OAuth + 策略檢查） |
 | `daemon` | 子命令 | 守護進程主循環 |
-| `ps`/`logs`/`attach`/`--bg` | 子命令或標誌 | 後臺會話管理 |
+| `ps`/`logs`/`attach`/`--bg` | 子命令或標誌 | 背景會話管理 |
 | `--worktree --tmux` | 組合標誌 | tmux worktree 快速 exec |
 | 默認 | 無特殊標誌 | **完整 CLI → cliMain() → QueryEngine** |
 

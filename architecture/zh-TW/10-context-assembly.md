@@ -104,7 +104,7 @@ export const SYSTEM_PROMPT_DYNAMIC_BOUNDARY =
 ```typescript
 // buildEffectiveSystemPrompt (systemPrompt.ts)
 if (overrideSystemPrompt)      → [override]           // 循環模式
-else if (coordinatorMode)      → [coordinator prompt]  // Swarm 領導者
+else if (coordinatorMode)      → [coordinator prompt]  // Swarm leader
 else if (agentDefinition)      → [agent prompt]        // 自定義 agent 替換默認
 else if (customSystemPrompt)   → [custom]              // --system-prompt 標誌
 else                           → [default sections]    // 正常運行

@@ -196,12 +196,12 @@ class CharPool {
 
 渲染器維護兩個 `Frame` 對象 —— `frontFrame` 和 `backFrame`。每次渲染：
 
-1. 重置**後臺緩衝**（通過 `resetScreen()` —— 一次 `cells64.fill(0n)` 調用）
-2. 將 DOM 樹渲染到後臺緩衝
-3. 與**前臺緩衝**對比生成最小 ANSI 輸出
-4. 交換：後臺變前臺供下幀使用
+1. 重置**background緩衝**（通過 `resetScreen()` —— 一次 `cells64.fill(0n)` 調用）
+2. 將 DOM 樹渲染到background緩衝
+3. 與**foreground緩衝**對比生成最小 ANSI 輸出
+4. 交換：background變foreground供下幀使用
 
-`prevFrameContaminated` 標誌追蹤前臺緩衝在渲染後被修改的情況（如選區疊加）。被汙染時，渲染器跳過 blit 優化執行全量重繪 —— 但只限那一幀。
+`prevFrameContaminated` 標誌追蹤foreground緩衝在渲染後被修改的情況（如選區疊加）。被汙染時，渲染器跳過 blit 優化執行全量重繪 —— 但只限那一幀。
 
 ---
 

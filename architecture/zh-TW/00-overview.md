@@ -96,7 +96,7 @@ Claude Code 的強大不是來自某個殺手鐧功能，而是**六大支柱協
 | 01 | [QueryEngine：大腦](../01-query-engine.md) | 將 LLM 變成 Agent 的 `while(true)` 循環——12 步流水線、AsyncGenerator 流式處理、錯誤恢復 | 711 |
 | 02 | [工具系統：42 模塊統一接口](../02-tool-system.md) | 每個工具 30+ 方法契約，Schema 驅動註冊，三層過濾，流式並行執行 | 665 |
 | 03 | [多 Agent 協調器](../03-coordinator.md) | tmux/iTerm2/進程內後端，AsyncLocalStorage 隔離，自動環境檢測 | 342 |
-| 04 | [Plugin 系統：全生命週期](../04-plugin-system.md) | Plugin = Skills + Hooks + MCP 服務器；6 種 Skill 來源，後臺安裝協調 | 548 |
+| 04 | [Plugin 系統：全生命週期](../04-plugin-system.md) | Plugin = Skills + Hooks + MCP 服務器；6 種 Skill 來源，background安裝協調 | 548 |
 | 05 | [Hook 系統：20 種事件類型](../05-hook-system.md) | PreToolUse / PostToolUse / Notification 鉤子，MCP 傳輸，否決與變異語義 | 299 |
 | 06 | [Bash 引擎：沙箱與管道](../06-bash-engine.md) | 6 層縱深防禦，tree-sitter AST 解析，macOS Seatbelt 沙箱 | 458 |
 | 07 | [權限管道：從規則到內核](../07-permission-pipeline.md) | 7 種規則來源，Bash AST 安全，投機性 YOLO 分類器，OAuth 2.0 PKCE | 619 |
@@ -221,7 +221,7 @@ Claude Code 不是"發送提示，得到回答"，而是一個 **while(true) 循
 
 ## §9 多 Agent：從獨奏到交響樂
 
-當任務超出單一上下文窗口時，系統**分治而非壓縮**。三種執行後端自動檢測（iTerm2 標籤頁 / tmux 面板 / 進程內 AsyncLocalStorage）。七種任務類型覆蓋所有後臺工作。團隊協調使用 TaskList 共享狀態 + SendMessage 異步通信 + 結構化消息類型。UltraPlan 模式啟用分層規劃。
+當任務超出單一上下文窗口時，系統**分治而非壓縮**。三種執行後端自動檢測（iTerm2 標籤頁 / tmux 面板 / 進程內 AsyncLocalStorage）。七種任務類型覆蓋所有background工作。團隊協調使用 TaskList 共享狀態 + SendMessage 異步通信 + 結構化消息類型。UltraPlan 模式啟用分層規劃。
 
 > → 深度解析: [EP03: 協調器](03-coordinator.md) | [EP08: Agent 集群](08-agent-swarms.md)
 
